@@ -1,0 +1,8 @@
+{
+  "name": "Remix Remix Elikia Diaspora v1.0",
+  "description": "Le guichet unique pour vivre, travailler, entreprendre et investir au Sénégal. Votre équipe de confiance au Sénégal.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -280,7 +280,7 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Right Action Area */}
           <div className="hidden lg:flex items-center space-x-3">
-            {isLoggedIn ? (
+            {isLoggedIn && (
               <button
                 id="header-dashboard-btn"
                 onClick={() => handleNavClick('dashboard')}
@@ -294,16 +294,16 @@ export const Header: React.FC<HeaderProps> = ({
                 <span>Mon Espace Elikia</span>
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               </button>
-            ) : (
-              <button
-                id="header-login-btn"
-                onClick={onOpenAuth}
-                className="px-4 py-2 rounded-full text-sm font-medium text-stone-700 hover:text-stone-900 hover:bg-stone-100/80 transition flex items-center gap-1.5"
-              >
-                <User className="w-4 h-4 text-stone-500" />
-                <span>Se connecter</span>
-              </button>
             )}
+
+            <button
+              id="header-login-btn"
+              onClick={onOpenAuth}
+              className="px-4 py-2 rounded-full text-sm font-medium text-stone-700 hover:text-stone-900 hover:bg-stone-100/80 transition flex items-center gap-1.5"
+            >
+              <User className="w-4 h-4 text-stone-500" />
+              <span>Se connecter</span>
+            </button>
 
             <button
               id="header-cta-start-project"
@@ -392,7 +392,7 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
 
             <div className="pt-4 border-t border-slate-100 flex flex-col gap-2.5">
-              {isLoggedIn ? (
+              {isLoggedIn && (
                 <button
                   onClick={() => handleNavClick('dashboard')}
                   className="w-full py-3 px-4 rounded-xl bg-slate-900 text-white font-bold text-center flex items-center justify-center gap-2"
@@ -400,14 +400,14 @@ export const Header: React.FC<HeaderProps> = ({
                   <LayoutDashboard className="w-4 h-4 text-emerald-400" />
                   <span>Accéder à Mon Espace Elikia</span>
                 </button>
-              ) : (
-                <button
-                  onClick={() => { setMobileMenuOpen(false); onOpenAuth(); }}
-                  className="w-full py-2.5 px-4 rounded-xl border border-slate-300 text-slate-800 font-semibold text-center hover:bg-slate-50"
-                >
-                  Se connecter
-                </button>
               )}
+
+              <button
+                onClick={() => { setMobileMenuOpen(false); onOpenAuth(); }}
+                className="w-full py-2.5 px-4 rounded-xl border border-slate-300 text-slate-800 font-semibold text-center hover:bg-slate-50"
+              >
+                Se connecter
+              </button>
 
               <button
                 onClick={() => handleNavClick('demarrer')}

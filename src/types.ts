@@ -12,7 +12,9 @@ export type PageRoute =
   | 'demarrer'
   | 'dashboard'
   | 'login'
-  | 'register';
+  | 'register'
+  | 'verify-email'
+  | 'reset-password';
 
 export type ServiceType = 
   | 'retour'

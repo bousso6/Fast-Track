@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { PageRoute } from './types';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
@@ -13,28 +13,76 @@ import { HowItWorksPage } from './pages/HowItWorksPage';
 import { PartnersPage } from './pages/PartnersPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { LoginPage } from './pages/LoginPage';
+import { VerifyEmailPage } from './pages/VerifyEmailPage';
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { ProjectWizard } from './components/ProjectWizard';
 import { AppointmentModal } from './components/AppointmentModal';
 import { QuoteModal } from './components/QuoteModal';
 import { AdvisorChatModal } from './components/AdvisorChatModal';
-import { AuthModal } from './components/AuthModal';
+import {
+  clearAuthSession,
+  getAuthSession,
+  getStoredUser,
+  logout as logoutRequest,
+} from './lib/authApi';
+import type { AuthUser } from './lib/authApi';
 import { MessageSquare } from 'lucide-react';
 
+const AUTH_PATHS: Partial<Record<PageRoute, string>> = {
+  login: '/login',
+  'verify-email': '/verify-email',
+  'reset-password': '/reset-password',
+};
+
+const pageFromPath = (): PageRoute => {
+  const path = window.location.pathname.replace(/\/+$/, '') || '/';
+
+  if (path === '/verify-email') return 'verify-email';
+  if (path === '/reset-password') return 'reset-password';
+  if (path === '/login') return 'login';
+
+  return 'accueil';
+};
+
 export function App() {
-  const [currentPage, setCurrentPage] = useState<PageRoute>('accueil');
+  const [currentPage, setCurrentPage] = useState<PageRoute>(pageFromPath);
   const [isAppointmentOpen, setIsAppointmentOpen] = useState(false);
   const [isQuoteOpen, setIsQuoteOpen] = useState(false);
   const [isAdvisorChatOpen, setIsAdvisorChatOpen] = useState(false);
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [quoteOfferId, setQuoteOfferId] = useState<string | undefined>(undefined);
-  const [isLoggedIn, setIsLoggedIn] = useState(true); // Default to true so user can easily explore dashboard
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => getStoredUser());
+  const isLoggedIn = Boolean(currentUser);
+
+  useEffect(() => {
+    const handlePopState = () => setCurrentPage(pageFromPath());
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   // Navigation + scroll to top
   // Header et Footer utilisent 'home' : on le redirige vers 'accueil'
   const handleNavigate = (page: PageRoute) => {
     const target: PageRoute = (page as string) === 'home' ? 'accueil' : page;
     setCurrentPage(target);
+
+    const path = AUTH_PATHS[target] ?? '/';
+    if (window.location.pathname !== path) {
+      window.history.pushState({}, '', path);
+    }
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleLogout = () => {
+    const session = getAuthSession();
+
+    clearAuthSession();
+    setCurrentUser(null);
+    handleNavigate('login');
+
+    if (session?.tokens.accessToken) {
+      void logoutRequest(session.tokens.accessToken).catch(() => undefined);
+    }
   };
 
   const handleOpenQuote = (offerId?: string) => {
@@ -52,8 +100,10 @@ export function App() {
         currentPage={currentPage}
         onNavigate={handleNavigate}
         isLoggedIn={isLoggedIn}
+        user={currentUser}
         onOpenAppointment={openAppointment}
-        onOpenAuth={() => setIsAuthOpen(true)}
+        onOpenAuth={() => handleNavigate('login')}
+        onLogout={handleLogout}
       />
 
       {/* Main Content Router */}
@@ -127,6 +177,7 @@ export function App() {
             onNavigate={handleNavigate}
             onOpenAdvisorChat={() => setIsAdvisorChatOpen(true)}
             onOpenAppointment={openAppointment}
+            user={currentUser}
           />
         )}
 
@@ -139,6 +190,7 @@ export function App() {
               }}
               onNavigate={handleNavigate}
               onOpenAppointment={openAppointment}
+              user={currentUser}
             />
           </div>
         )}
@@ -146,10 +198,16 @@ export function App() {
         {currentPage === 'login' && (
           <LoginPage
             onNavigate={handleNavigate}
-            onLoginSuccess={() => {
-              setIsLoggedIn(true);
-            }}
+            onLoginSuccess={(user) => setCurrentUser(user)}
           />
+        )}
+
+        {currentPage === 'verify-email' && (
+          <VerifyEmailPage onNavigate={handleNavigate} />
+        )}
+
+        {currentPage === 'reset-password' && (
+          <ResetPasswordPage onNavigate={handleNavigate} />
         )}
       </main>
 
@@ -172,6 +230,7 @@ export function App() {
       <AppointmentModal
         isOpen={isAppointmentOpen}
         onClose={() => setIsAppointmentOpen(false)}
+        user={currentUser}
       />
 
       <QuoteModal
@@ -179,6 +238,7 @@ export function App() {
         isOpen={isQuoteOpen}
         onClose={() => setIsQuoteOpen(false)}
         defaultOfferId={quoteOfferId}
+        user={currentUser}
       />
 
       <AdvisorChatModal
@@ -187,15 +247,6 @@ export function App() {
         onOpenAppointment={() => {
           setIsAdvisorChatOpen(false);
           setIsAppointmentOpen(true);
-        }}
-      />
-
-      <AuthModal
-        isOpen={isAuthOpen}
-        onClose={() => setIsAuthOpen(false)}
-        onLoginSuccess={() => {
-          setIsLoggedIn(true);
-          handleNavigate('dashboard');
         }}
       />
 

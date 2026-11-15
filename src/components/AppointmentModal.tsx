@@ -1,25 +1,38 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, Calendar, Clock, Video, Phone, Building2, CheckCircle2, User, Mail, MessageSquare } from 'lucide-react';
 import { DEFAULT_ADVISOR } from '../data/mockData';
+import type { AuthUser } from '../lib/authApi';
 
 interface AppointmentModalProps {
   isOpen: boolean;
   onClose: () => void;
+  user: AuthUser | null;
 }
 
-export const AppointmentModal: React.FC<AppointmentModalProps> = ({ isOpen, onClose }) => {
+export const AppointmentModal: React.FC<AppointmentModalProps> = ({ isOpen, onClose, user }) => {
   const [step, setStep] = useState<'form' | 'success'>('form');
   const [channel, setChannel] = useState<'visio' | 'whatsapp' | 'bureau'>('visio');
   const [date, setDate] = useState('2026-03-02');
   const [time, setTime] = useState('14:30');
   const [timeZone, setTimeZone] = useState('Europe/Paris (UTC+1)');
   const [formData, setFormData] = useState({
-    name: 'Mariama Diop',
-    email: 'mariama.diop@example.com',
-    phone: '+33 6 12 34 56 78',
+    name: '',
+    email: '',
+    phone: '',
     projectType: 'Immobilier & Entrepreneuriat',
     notes: 'Je souhaite discuter de l’acquisition d’un appartement à Dakar et de la création de ma société.'
   });
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    setFormData((current) => ({
+      ...current,
+      name: user ? `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() : '',
+      email: user?.email ?? '',
+      phone: user?.phone ?? '',
+    }));
+  }, [isOpen, user]);
 
   if (!isOpen) return null;
 

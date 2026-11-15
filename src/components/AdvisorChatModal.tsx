@@ -18,7 +18,7 @@ export const AdvisorChatModal: React.FC<AdvisorChatModalProps> = ({
     {
       id: 'm1',
       sender: 'advisor',
-      text: 'Bonjour Mariama ! Je suis Awa Ndiaye, votre conseillère dédiée Elikia à Dakar. J’ai vérifié ce matin l’état d’avancement de l’audit notarié pour l’appartement de Mermoz. Tout est conforme au niveau du titre foncier.',
+      text: 'Bonjour ! Je suis Awa Ndiaye, votre conseillère dédiée Elikia à Dakar. J’ai vérifié ce matin l’état d’avancement de l’audit notarié pour l’appartement de Mermoz. Tout est conforme au niveau du titre foncier.',
       timestamp: 'Hier à 14:30',
       attachments: ['Rapport_Audit_Technique_Structure.pdf']
     },

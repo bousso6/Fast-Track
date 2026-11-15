@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   CheckCircle2, 
   ArrowRight, 
@@ -23,17 +23,20 @@ import {
 } from 'lucide-react';
 import { ServiceType, PageRoute } from '../types';
 import { COUNTRIES_OF_RESIDENCE, SENEGAL_LOCATIONS } from '../data/mockData';
+import type { AuthUser } from '../lib/authApi';
 
 interface ProjectWizardProps {
   onComplete: (projectData: any) => void;
   onNavigate: (page: PageRoute) => void;
   onOpenAppointment: () => void;
+  user: AuthUser | null;
 }
 
 export const ProjectWizard: React.FC<ProjectWizardProps> = ({
   onComplete,
   onNavigate,
-  onOpenAppointment
+  onOpenAppointment,
+  user
 }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -42,13 +45,25 @@ export const ProjectWizard: React.FC<ProjectWizardProps> = ({
     targetCity: 'Dakar — Almadies / Ngor / Virage',
     budget: '50M - 100M FCFA (75k€ - 150k€)',
     timeline: 'Moins de 3 mois',
-    firstName: 'Mariama',
-    lastName: 'Diop',
-    email: 'mariama.diop@example.com',
-    phone: '+33 6 12 34 56 78',
+    firstName: user?.firstName ?? '',
+    lastName: user?.lastName ?? '',
+    email: user?.email ?? '',
+    phone: user?.phone ?? '',
     details: 'Je souhaite faire l’acquisition d’un appartement ou d’un terrain sécurisé avec vérification du titre foncier par notaire.'
   });
   const [isSuccess, setIsSuccess] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+
+    setFormData((current) => ({
+      ...current,
+      firstName: user.firstName ?? '',
+      lastName: user.lastName ?? '',
+      email: user.email ?? '',
+      phone: user.phone ?? '',
+    }));
+  }, [user]);
 
   const projectTypes = [
     { id: 'retour' as ServiceType, title: 'Retour / Installation', desc: 'Logement, écoles, démarches & installation', icon: Plane, color: 'emerald' },

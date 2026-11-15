@@ -1,17 +1,20 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, CheckCircle2, ShieldAlert, Calculator, Sparkles, FileText, Send } from 'lucide-react';
 import { OFFERS } from '../data/mockData';
+import type { AuthUser } from '../lib/authApi';
 
 interface QuoteModalProps {
   isOpen: boolean;
   onClose: () => void;
   defaultOfferId?: string;
+  user: AuthUser | null;
 }
 
 export const QuoteModal: React.FC<QuoteModalProps> = ({
   isOpen,
   onClose,
-  defaultOfferId = 'assist'
+  defaultOfferId = 'assist',
+  user
 }) => {
   const [selectedOffer, setSelectedOffer] = useState(defaultOfferId);
   const [services, setServices] = useState<string[]>(['immobilier', 'entreprendre']);
@@ -19,11 +22,22 @@ export const QuoteModal: React.FC<QuoteModalProps> = ({
   const [options, setOptions] = useState<string[]>(['audit_juridique', 'drone_video']);
   const [submitted, setSubmitted] = useState(false);
   const [contact, setContact] = useState({
-    name: 'Mariama Diop',
-    email: 'mariama.diop@example.com',
-    phone: '+33 6 12 34 56 78',
+    name: '',
+    email: '',
+    phone: '',
     message: 'Je souhaite un accompagnement rigoureux pour vérifier un terrain et constituer ma société à Dakar.'
   });
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    setContact((current) => ({
+      ...current,
+      name: user ? `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() : '',
+      email: user?.email ?? '',
+      phone: user?.phone ?? '',
+    }));
+  }, [isOpen, user]);
 
   if (!isOpen) return null;
 

@@ -23,19 +23,36 @@ import {
   PieChart
 } from 'lucide-react';
 import { PageRoute, UserProject } from '../types';
-import { CURRENT_USER, DEFAULT_ADVISOR, INITIAL_USER_PROJECTS } from '../data/mockData';
+import { DEFAULT_ADVISOR, INITIAL_USER_PROJECTS } from '../data/mockData';
+import type { AuthUser } from '../lib/authApi';
 
 interface DashboardPageProps {
   onNavigate: (page: PageRoute) => void;
   onOpenAdvisorChat: () => void;
   onOpenAppointment: () => void;
+  user: AuthUser | null;
 }
 
 export const DashboardPage: React.FC<DashboardPageProps> = ({
   onNavigate,
   onOpenAdvisorChat,
-  onOpenAppointment
+  onOpenAppointment,
+  user
 }) => {
+  const displayName = user
+    ? `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || 'Mon espace'
+    : 'Mon espace';
+  const initials = user
+    ? `${user.firstName?.[0] ?? ''}${user.lastName?.[0] ?? ''}`.toUpperCase() || 'E'
+    : 'E';
+  const roleLabel =
+    user?.role === 'admin'
+      ? 'Administrateur'
+      : user?.role === 'advisor'
+        ? 'Conseiller'
+        : user?.role === 'finance'
+          ? 'Finance'
+          : 'Espace Client';
   const [projects, setProjects] = useState<UserProject[]>(INITIAL_USER_PROJECTS);
   const [selectedProjectId, setSelectedProjectId] = useState<string>(projects[0].id);
   const [activeTab, setActiveTab] = useState<'overview' | 'budget' | 'documents' | 'timeline'>('overview');
@@ -92,25 +109,23 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         <div className="bg-white rounded-2xl p-6 sm:p-8 border border-stone-200/90 shadow-sm mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-4">
             <div className="relative">
-              <img 
-                src={CURRENT_USER.avatar} 
-                alt={CURRENT_USER.name} 
-                className="w-16 h-16 rounded-xl object-cover border border-stone-200 shadow-xs" 
-              />
+              <div className="w-16 h-16 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center justify-center text-xl font-serif-editorial font-bold shadow-xs">
+                {initials}
+              </div>
               <span className="w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full absolute -top-1 -right-1" />
             </div>
 
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl sm:text-3xl font-serif-editorial font-bold text-stone-900">
-                  Bonjour, {CURRENT_USER.name.split(' ')[0]} 👋
+                  Bonjour, {displayName} 👋
                 </h1>
                 <span className="text-[10px] font-mono font-semibold uppercase tracking-wider bg-emerald-50 text-emerald-800 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                  {CURRENT_USER.plan}
+                  {roleLabel}
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-stone-600 mt-0.5 font-sans">
-                Voici l’avancement de vos projets et actifs au Sénégal en temps réel.
+                {user?.email ? `${user.email} · ` : ''}Voici l’avancement de vos projets et actifs au Sénégal en temps réel.
               </p>
             </div>
           </div>

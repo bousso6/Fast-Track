@@ -14,25 +14,38 @@ import {
   Car, 
   TrendingUp, 
   Plane,
-  LayoutDashboard
+  LayoutDashboard,
+  LogOut
 } from 'lucide-react';
 import { PageRoute } from '../types';
+import type { AuthUser } from '../lib/authApi';
 
 interface HeaderProps {
   currentPage: PageRoute;
   onNavigate: (page: PageRoute) => void;
   isLoggedIn: boolean;
+  user: AuthUser | null;
   onOpenAppointment: () => void;
   onOpenAuth: () => void;
+  onLogout: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   currentPage,
   onNavigate,
   isLoggedIn,
+  user,
   onOpenAppointment,
-  onOpenAuth
+  onOpenAuth,
+  onLogout
 }) => {
+  const userInitials = user
+    ? `${user.firstName?.[0] ?? ''}${user.lastName?.[0] ?? ''}`.toUpperCase() || 'E'
+    : 'E';
+  const userFirstName = user?.firstName || 'Mon compte';
+  const userFullName = user
+    ? `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || 'Mon compte'
+    : 'Mon compte';
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [servicesDropdownOpen, setServicesDropdownOpen] = useState(false);
 
@@ -281,29 +294,51 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Right Action Area */}
           <div className="hidden lg:flex items-center space-x-3">
             {isLoggedIn && (
-              <button
-                id="header-dashboard-btn"
-                onClick={() => handleNavClick('dashboard')}
-                className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border transition-all ${
-                  currentPage === 'dashboard'
-                    ? 'bg-[#111827] text-white border-stone-900 shadow-xs'
-                    : 'bg-white text-stone-800 border-stone-200 hover:bg-stone-50'
-                }`}
-              >
-                <LayoutDashboard className="w-4 h-4 text-emerald-600" />
-                <span>Mon Espace Elikia</span>
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              </button>
+              <>
+                <button
+                  id="header-dashboard-btn"
+                  onClick={() => handleNavClick('dashboard')}
+                  className={`px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border transition-all ${
+                    currentPage === 'dashboard'
+                      ? 'bg-[#111827] text-white border-stone-900 shadow-xs'
+                      : 'bg-white text-stone-800 border-stone-200 hover:bg-stone-50'
+                  }`}
+                >
+                  <LayoutDashboard className="w-4 h-4 text-emerald-600" />
+                  <span>Mon Espace Elikia</span>
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                </button>
+
+                <div className="flex items-center gap-1.5 pl-2 border-l border-stone-200">
+                  <span className="w-7 h-7 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center justify-center text-[10px] font-bold">
+                    {userInitials}
+                  </span>
+                  <span className="text-xs font-semibold text-stone-700 max-w-[110px] truncate">
+                    {userFirstName}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={onLogout}
+                    className="p-1.5 rounded-full text-stone-500 hover:text-red-600 hover:bg-red-50 transition cursor-pointer"
+                    title="Se déconnecter"
+                    aria-label="Se déconnecter"
+                  >
+                    <LogOut className="w-4 h-4" />
+                  </button>
+                </div>
+              </>
             )}
 
-            <button
-              id="header-login-btn"
-              onClick={onOpenAuth}
-              className="px-4 py-2 rounded-full text-sm font-medium text-stone-700 hover:text-stone-900 hover:bg-stone-100/80 transition flex items-center gap-1.5"
-            >
-              <User className="w-4 h-4 text-stone-500" />
-              <span>Se connecter</span>
-            </button>
+            {!isLoggedIn && (
+              <button
+                id="header-login-btn"
+                onClick={onOpenAuth}
+                className="px-4 py-2 rounded-full text-sm font-medium text-stone-700 hover:text-stone-900 hover:bg-stone-100/80 transition flex items-center gap-1.5"
+              >
+                <User className="w-4 h-4 text-stone-500" />
+                <span>Se connecter</span>
+              </button>
+            )}
 
             <button
               id="header-cta-start-project"
@@ -393,21 +428,43 @@ export const Header: React.FC<HeaderProps> = ({
 
             <div className="pt-4 border-t border-slate-100 flex flex-col gap-2.5">
               {isLoggedIn && (
-                <button
-                  onClick={() => handleNavClick('dashboard')}
-                  className="w-full py-3 px-4 rounded-xl bg-slate-900 text-white font-bold text-center flex items-center justify-center gap-2"
-                >
-                  <LayoutDashboard className="w-4 h-4 text-emerald-400" />
-                  <span>Accéder à Mon Espace Elikia</span>
-                </button>
+                <>
+                  <div className="flex items-center gap-2.5 px-2 py-2">
+                    <span className="w-9 h-9 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center justify-center text-xs font-bold">
+                      {userInitials}
+                    </span>
+                    <div className="text-left min-w-0">
+                      <div className="text-sm font-semibold text-stone-900 truncate">{userFullName}</div>
+                      <div className="text-[11px] text-stone-500 truncate">{user?.email}</div>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => handleNavClick('dashboard')}
+                    className="w-full py-3 px-4 rounded-xl bg-slate-900 text-white font-bold text-center flex items-center justify-center gap-2"
+                  >
+                    <LayoutDashboard className="w-4 h-4 text-emerald-400" />
+                    <span>Accéder à Mon Espace Elikia</span>
+                  </button>
+
+                  <button
+                    onClick={() => { setMobileMenuOpen(false); onLogout(); }}
+                    className="w-full py-2.5 px-4 rounded-xl border border-red-200 text-red-600 font-semibold text-center hover:bg-red-50 flex items-center justify-center gap-2"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>Se déconnecter</span>
+                  </button>
+                </>
               )}
 
-              <button
-                onClick={() => { setMobileMenuOpen(false); onOpenAuth(); }}
-                className="w-full py-2.5 px-4 rounded-xl border border-slate-300 text-slate-800 font-semibold text-center hover:bg-slate-50"
-              >
-                Se connecter
-              </button>
+              {!isLoggedIn && (
+                <button
+                  onClick={() => { setMobileMenuOpen(false); onOpenAuth(); }}
+                  className="w-full py-2.5 px-4 rounded-xl border border-slate-300 text-slate-800 font-semibold text-center hover:bg-slate-50"
+                >
+                  Se connecter
+                </button>
+              )}
 
               <button
                 onClick={() => handleNavClick('demarrer')}

@@ -34,7 +34,7 @@ export const InvestirPage: React.FC<InvestirPageProps> = ({
     { name: 'Analyse', desc: 'Sélection rigoureuse des projets et audit financier préliminaire.' },
     { name: 'Due Diligence', desc: 'Vérification sur site, conformité juridique, santé financière et antécédents.' },
     { name: 'Structuration', desc: 'Pacte d’actionnaires sécurisé, clauses de gouvernance et garanties réelles.' },
-    { name: 'Investissement', desc: 'Déblocage des fonds sous séquestre au fur et à mesure des jalons opérationnels.' },
+    { name: 'Investissement', desc: 'Suivi documenté des dépenses et justificatifs au fil des jalons opérationnels.' },
     { name: 'Reporting', desc: 'Tableaux de bord trimestriels, indicateurs de rentabilité et audits comptables.' },
     { name: 'Suivi Terrain', desc: 'Visites de contrôle inopinées par nos coordinateurs basés à Dakar.' }
   ];
@@ -152,4 +152,3 @@ export const InvestirPage: React.FC<InvestirPageProps> = ({
     </div>
   );
 };
-

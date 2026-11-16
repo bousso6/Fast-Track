@@ -33,7 +33,7 @@ export const ImmobilierPage: React.FC<ImmobilierPageProps> = ({
     { num: 6, title: 'Réaliser la Due Diligence foncière', desc: 'Audit approfondi de l’état des droits réels à la Conservation Foncière (vérification Titre Foncier, hypothèque, litige).' },
     { num: 7, title: 'Négocier au juste prix', desc: 'Négociation basée sur le prix réel du m² dans le quartier pour éviter la surtarification diaspora.' },
     { num: 8, title: 'Contractualiser & Promesse', desc: 'Rédaction et encadrement de la promesse synallagmatique de vente devant notaire.' },
-    { num: 9, title: 'Finaliser l’achat', desc: 'Paiement sous séquestre notarial, signature de l’acte authentique et transfert du titre de propriété.' },
+    { num: 9, title: 'Finaliser l’achat', desc: 'Paiement selon les modalités convenues avec les professionnels concernés, signature de l’acte authentique et transfert du titre de propriété.' },
     { num: 10, title: 'Gérer le bien & Travaux', desc: 'Suivi de chantier par drone, ameublement, mise en location ou remise des clés sécurisée.' }
   ];
 
@@ -135,4 +135,3 @@ export const ImmobilierPage: React.FC<ImmobilierPageProps> = ({
     </div>
   );
 };
-

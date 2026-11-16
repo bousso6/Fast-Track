@@ -15,10 +15,16 @@ import {
   TrendingUp, 
   Plane,
   LayoutDashboard,
-  LogOut
+  LogOut,
+  ClipboardList,
+  FileCheck2,
+  FileText,
+  Wallet,
+  Users,
 } from 'lucide-react';
 import { PageRoute } from '../types';
 import type { AuthUser } from '../lib/authApi';
+import { getDashboardRoute } from '../lib/dashboardRouting';
 
 interface HeaderProps {
   currentPage: PageRoute;
@@ -48,6 +54,7 @@ export const Header: React.FC<HeaderProps> = ({
     : 'Mon compte';
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [servicesDropdownOpen, setServicesDropdownOpen] = useState(false);
+  const [activeStaffSection, setActiveStaffSection] = useState('staff-section-overview');
 
   const navItems = [
     { label: 'Accueil', route: 'home' as PageRoute },
@@ -74,6 +81,170 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   const isServiceActive = ['retour', 'emploi', 'entreprendre', 'immobilier', 'vehicules', 'investir'].includes(currentPage);
+  const staffRoute = user ? getDashboardRoute(user.role) : null;
+  const staffNavItems =
+    staffRoute === 'advisor-dashboard'
+      ? [
+          { label: 'Vue d’ensemble', icon: LayoutDashboard },
+          { label: 'Mes clients', icon: Users, section: 'staff-section-clients' },
+          { label: 'Mes projets', icon: Briefcase, section: 'staff-section-projects' },
+          { label: 'Tâches et jalons', icon: ClipboardList, section: 'staff-section-tasks' },
+          { label: 'Documents', icon: FileText, section: 'staff-section-documents' },
+          { label: 'Budgets', icon: Wallet, section: 'staff-section-budgets' },
+          { label: 'Partenaires', icon: Users, section: 'staff-section-partners' },
+        ]
+      : staffRoute === 'finance-dashboard'
+        ? [
+            { label: 'Vue d’ensemble', icon: LayoutDashboard },
+            { label: 'Projets', icon: Briefcase, section: 'staff-section-projects' },
+            { label: 'Budgets', icon: Wallet, section: 'staff-section-budgets' },
+            { label: 'Dépenses', icon: FileCheck2, section: 'staff-section-expenses' },
+            { label: 'Reporting', icon: ArrowRight, section: 'staff-section-reports' },
+          ]
+        : staffRoute === 'admin-dashboard'
+          ? [
+              { label: 'Vue d’ensemble', icon: LayoutDashboard },
+              { label: 'Demandes', icon: ClipboardList, section: 'staff-section-leads' },
+              { label: 'Projets', icon: Briefcase, section: 'staff-section-projects' },
+              { label: 'Projets bloqués', icon: ShieldCheck, section: 'staff-section-blocked' },
+            ]
+          : null;
+
+  if (isLoggedIn && staffNavItems && staffRoute) {
+    const handleStaffNav = (section?: string) => {
+      setActiveStaffSection(section ?? 'staff-section-overview');
+      if (currentPage !== staffRoute) {
+        onNavigate(staffRoute);
+      }
+      setMobileMenuOpen(false);
+
+      const scrollToSection = () => {
+        if (section) {
+          document.getElementById(section)?.scrollIntoView({ behavior: 'smooth' });
+        } else {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      };
+
+      if (currentPage !== staffRoute) {
+        window.setTimeout(scrollToSection, 100);
+      } else {
+        scrollToSection();
+      }
+    };
+
+    return (
+      <header className="sticky top-0 z-50 border-b border-stone-200 bg-white/95 backdrop-blur-md">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
+          <button
+            type="button"
+            onClick={() => handleStaffNav()}
+            className="flex shrink-0 items-center gap-3 text-left"
+            aria-label="Retour au tableau de bord"
+          >
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#111827] font-serif-editorial text-xl font-bold text-emerald-400">
+              E
+            </span>
+            <span>
+              <span className="block font-serif-editorial text-lg font-bold text-stone-900">
+                ELIKIA<span className="text-emerald-600">.</span>
+              </span>
+              <span className="block text-[10px] font-semibold uppercase tracking-wider text-stone-500">
+                {staffRoute === 'advisor-dashboard'
+                  ? 'Espace conseiller'
+                  : staffRoute === 'finance-dashboard'
+                    ? 'Espace finance'
+                    : 'Administration'}
+              </span>
+            </span>
+          </button>
+
+          <nav className="hidden items-center gap-1 lg:flex" aria-label="Navigation du personnel">
+            {staffNavItems.map(({ label, icon: NavIcon, section }) => (
+              <button
+                type="button"
+                key={label}
+                onClick={() => handleStaffNav(section)}
+                aria-current={
+                  activeStaffSection === (section ?? 'staff-section-overview')
+                    ? 'location'
+                    : undefined
+                }
+                className={`inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition ${
+                  activeStaffSection === (section ?? 'staff-section-overview')
+                    ? 'bg-emerald-50 text-emerald-800'
+                    : 'text-stone-700 hover:bg-emerald-50 hover:text-emerald-800'
+                }`}
+              >
+                <NavIcon className="h-4 w-4" />
+                {label}
+              </button>
+            ))}
+          </nav>
+
+          <div className="hidden items-center gap-2 lg:flex">
+            <span className="max-w-32 truncate text-sm font-medium text-stone-700">{userFirstName}</span>
+            <button
+              type="button"
+              onClick={onLogout}
+              className="inline-flex items-center gap-2 rounded-full border border-stone-200 px-3 py-2 text-sm text-stone-600 transition hover:border-red-200 hover:bg-red-50 hover:text-red-700"
+              aria-label="Se déconnecter"
+            >
+              <LogOut className="h-4 w-4" />
+              Déconnexion
+            </button>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen((open) => !open)}
+            className="rounded-lg p-2 text-stone-700 hover:bg-stone-100 lg:hidden"
+            aria-label={mobileMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+            aria-expanded={mobileMenuOpen}
+          >
+            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
+        {mobileMenuOpen && (
+          <nav className="border-t border-stone-100 px-4 py-3 lg:hidden" aria-label="Navigation du personnel">
+            <div className="mx-auto max-w-7xl space-y-1">
+              {staffNavItems.map(({ label, icon: NavIcon, section }) => (
+                <button
+                  type="button"
+                  key={label}
+                  onClick={() => handleStaffNav(section)}
+                  aria-current={
+                    activeStaffSection === (section ?? 'staff-section-overview')
+                      ? 'location'
+                      : undefined
+                  }
+                  className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium ${
+                    activeStaffSection === section
+                      ? 'bg-emerald-50 text-emerald-800'
+                      : 'text-stone-700 hover:bg-emerald-50 hover:text-emerald-800'
+                  }`}
+                >
+                  <NavIcon className="h-4 w-4" />
+                  {label}
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onLogout();
+                }}
+                className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-red-700 hover:bg-red-50"
+              >
+                <LogOut className="h-4 w-4" />
+                Se déconnecter
+              </button>
+            </div>
+          </nav>
+        )}
+      </header>
+    );
+  }
 
   return (
     <header id="main-header" className="sticky top-0 z-50 bg-[#FDFCFB]/95 backdrop-blur-md border-b border-[#E7E5E0] transition-all duration-200">

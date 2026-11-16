@@ -21,6 +21,7 @@ import {
   resendVerification,
   saveAuthSession,
 } from '../lib/authApi';
+import { getDashboardRoute } from '../lib/dashboardRouting';
 import type { AuthUser } from '../lib/authApi';
 
 interface LoginPageProps {
@@ -83,7 +84,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
       saveAuthSession(session);
       onLoginSuccess(session.user);
-      onNavigate('dashboard');
+      onNavigate(getDashboardRoute(session.user.role));
     } catch (loginError) {
       setError(getApiErrorMessage(loginError));
       if (loginError instanceof ApiError && loginError.status === 403) {

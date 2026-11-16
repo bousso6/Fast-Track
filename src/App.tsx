@@ -12,6 +12,7 @@ import { InvestirPage } from './pages/InvestirPage';
 import { HowItWorksPage } from './pages/HowItWorksPage';
 import { PartnersPage } from './pages/PartnersPage';
 import { DashboardPage } from './pages/DashboardPage';
+import { StaffDashboardPage } from './pages/StaffDashboardPage';
 import { LoginPage } from './pages/LoginPage';
 import { VerifyEmailPage } from './pages/VerifyEmailPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
@@ -20,22 +21,33 @@ import { AppointmentModal } from './components/AppointmentModal';
 import { QuoteModal } from './components/QuoteModal';
 import { AdvisorChatModal } from './components/AdvisorChatModal';
 import {
+  AUTH_SESSION_EXPIRED_EVENT,
   clearAuthSession,
   getAuthSession,
   getStoredUser,
   logout as logoutRequest,
 } from './lib/authApi';
+import { getDashboardRoute } from './lib/dashboardRouting';
 import type { AuthUser } from './lib/authApi';
 import { MessageSquare } from 'lucide-react';
 
-const AUTH_PATHS: Partial<Record<PageRoute, string>> = {
+const PAGE_PATHS: Partial<Record<PageRoute, string>> = {
   login: '/login',
   'verify-email': '/verify-email',
   'reset-password': '/reset-password',
+  dashboard: '/dashboard',
+  'admin-dashboard': '/admin/dashboard',
+  'advisor-dashboard': '/advisor/dashboard',
+  'finance-dashboard': '/finance/dashboard',
 };
 
-const pageFromPath = (): PageRoute => {
+const pageFromPath = (role?: string | null): PageRoute => {
   const path = window.location.pathname.replace(/\/+$/, '') || '/';
+
+  if (path === '/dashboard') return getDashboardRoute(role);
+
+  const route = Object.entries(PAGE_PATHS).find(([, pathname]) => pathname === path);
+  if (route) return route[0] as PageRoute;
 
   if (path === '/verify-email') return 'verify-email';
   if (path === '/reset-password') return 'reset-password';
@@ -45,27 +57,51 @@ const pageFromPath = (): PageRoute => {
 };
 
 export function App() {
-  const [currentPage, setCurrentPage] = useState<PageRoute>(pageFromPath);
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => getStoredUser());
+  const [currentPage, setCurrentPage] = useState<PageRoute>(() =>
+    pageFromPath(currentUser?.role)
+  );
   const [isAppointmentOpen, setIsAppointmentOpen] = useState(false);
   const [isQuoteOpen, setIsQuoteOpen] = useState(false);
   const [isAdvisorChatOpen, setIsAdvisorChatOpen] = useState(false);
   const [quoteOfferId, setQuoteOfferId] = useState<string | undefined>(undefined);
-  const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => getStoredUser());
   const isLoggedIn = Boolean(currentUser);
+  const isStaffArea = [
+    'admin-dashboard',
+    'advisor-dashboard',
+    'finance-dashboard',
+  ].includes(currentPage);
 
   useEffect(() => {
-    const handlePopState = () => setCurrentPage(pageFromPath());
+    const handlePopState = () => setCurrentPage(pageFromPath(currentUser?.role));
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
+  }, [currentUser?.role]);
+
+  useEffect(() => {
+    const handleSessionExpired = () => {
+      setCurrentUser(null);
+      setCurrentPage('login');
+      window.history.replaceState({}, '', '/login');
+    };
+
+    window.addEventListener(AUTH_SESSION_EXPIRED_EVENT, handleSessionExpired);
+    return () =>
+      window.removeEventListener(AUTH_SESSION_EXPIRED_EVENT, handleSessionExpired);
   }, []);
 
   // Navigation + scroll to top
   // Header et Footer utilisent 'home' : on le redirige vers 'accueil'
   const handleNavigate = (page: PageRoute) => {
-    const target: PageRoute = (page as string) === 'home' ? 'accueil' : page;
+    let target: PageRoute = (page as string) === 'home' ? 'accueil' : page;
+
+    if (target === 'dashboard' && currentUser?.role) {
+      target = getDashboardRoute(currentUser.role);
+    }
+
     setCurrentPage(target);
 
-    const path = AUTH_PATHS[target] ?? '/';
+    const path = PAGE_PATHS[target] ?? '/';
     if (window.location.pathname !== path) {
       window.history.pushState({}, '', path);
     }
@@ -172,12 +208,38 @@ export function App() {
           />
         )}
 
+        {/* Dashboard client */}
         {currentPage === 'dashboard' && (
           <DashboardPage
             onNavigate={handleNavigate}
             onOpenAdvisorChat={() => setIsAdvisorChatOpen(true)}
             onOpenAppointment={openAppointment}
             user={currentUser}
+          />
+        )}
+
+        {/* Dashboards équipe : admin, conseiller, finance */}
+        {currentPage === 'admin-dashboard' && (
+          <StaffDashboardPage
+            variant="admin"
+            user={currentUser}
+            onNavigate={handleNavigate}
+          />
+        )}
+
+        {currentPage === 'advisor-dashboard' && (
+          <StaffDashboardPage
+            variant="advisor"
+            user={currentUser}
+            onNavigate={handleNavigate}
+          />
+        )}
+
+        {currentPage === 'finance-dashboard' && (
+          <StaffDashboardPage
+            variant="finance"
+            user={currentUser}
+            onNavigate={handleNavigate}
           />
         )}
 
@@ -212,7 +274,7 @@ export function App() {
       </main>
 
       {/* Floating Action Button (Chat with Advisor) */}
-      <div className="fixed bottom-5 right-5 z-40 flex flex-col gap-2.5">
+      {!isStaffArea && <div className="fixed bottom-5 right-5 z-40 flex flex-col gap-2.5">
         <button
           onClick={() => setIsAdvisorChatOpen(true)}
           className="w-13 h-13 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white shadow-xl flex items-center justify-center transition-all hover:scale-105 border-2 border-white ring-4 ring-emerald-500/20 group relative cursor-pointer"
@@ -224,7 +286,7 @@ export function App() {
           </span>
           <span className="w-3.5 h-3.5 bg-emerald-400 border-2 border-white rounded-full absolute top-0 right-0 animate-pulse" />
         </button>
-      </div>
+      </div>}
 
       {/* Global Modals */}
       <AppointmentModal
@@ -251,10 +313,12 @@ export function App() {
       />
 
       {/* Global Footer */}
-      <Footer
-        onNavigate={handleNavigate}
-        onOpenAppointment={openAppointment}
-      />
+      {!isStaffArea && (
+        <Footer
+          onNavigate={handleNavigate}
+          onOpenAppointment={openAppointment}
+        />
+      )}
     </div>
   );
 }

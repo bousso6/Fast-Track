@@ -56,6 +56,12 @@ export interface AuthSession {
 }
 
 const SESSION_KEY = 'elikia.auth.session';
+export const AUTH_SESSION_EXPIRED_EVENT = 'elikia:session-expired';
+
+const expireAuthSession = () => {
+  clearAuthSession();
+  window.dispatchEvent(new Event(AUTH_SESSION_EXPIRED_EVENT));
+};
 
 export const saveAuthSession = (session: AuthSession) => {
   localStorage.setItem(SESSION_KEY, JSON.stringify(session));
@@ -79,6 +85,78 @@ export const getStoredUser = (): AuthUser | null => getAuthSession()?.user ?? nu
 
 export const clearAuthSession = () => {
   localStorage.removeItem(SESSION_KEY);
+};
+
+let refreshInProgress: Promise<AuthSession> | null = null;
+
+const refreshAuthSession = () => {
+  if (!refreshInProgress) {
+    const session = getAuthSession();
+    if (!session?.tokens.refreshToken) {
+      clearAuthSession();
+      return Promise.reject(
+        new ApiError('Votre session a expiré. Veuillez vous reconnecter.', 401)
+      );
+    }
+
+    refreshInProgress = request<{ user: AuthUser; tokens: AuthTokens }>('/auth/refresh', {
+      method: 'POST',
+      body: JSON.stringify({ refreshToken: session.tokens.refreshToken }),
+    })
+      .then((response) => {
+        if (!response.data?.user || !response.data.tokens?.accessToken) {
+          throw new ApiError('Réponse de renouvellement de session invalide.', 500);
+        }
+
+        const renewedSession: AuthSession = {
+          user: response.data.user,
+          tokens: response.data.tokens,
+        };
+        saveAuthSession(renewedSession);
+        return renewedSession;
+      })
+      .catch((error: unknown) => {
+        if (error instanceof ApiError && error.status === 401) {
+            expireAuthSession();
+          throw new ApiError('Votre session a expiré. Veuillez vous reconnecter.', 401);
+        }
+        throw error;
+      })
+      .finally(() => {
+        refreshInProgress = null;
+      });
+  }
+
+  return refreshInProgress;
+};
+
+export const fetchWithAuth = async (
+  input: RequestInfo | URL,
+  options: RequestInit = {}
+) => {
+  const session = getAuthSession();
+  if (!session?.tokens.accessToken) {
+    expireAuthSession();
+    throw new ApiError('Votre session a expiré. Veuillez vous reconnecter.', 401);
+  }
+
+  const send = (accessToken: string) => {
+    const headers = new Headers(options.headers);
+    headers.set('Authorization', `Bearer ${accessToken}`);
+    return fetch(input, { ...options, headers });
+  };
+
+  const response = await send(session.tokens.accessToken);
+  if (response.status !== 401) return response;
+
+  const renewedSession = await refreshAuthSession();
+  const retryResponse = await send(renewedSession.tokens.accessToken);
+  if (retryResponse.status === 401) {
+    expireAuthSession();
+    throw new ApiError('Votre session a expiré. Veuillez vous reconnecter.', 401);
+  }
+
+  return retryResponse;
 };
 
 interface ApiEnvelope<T> {

@@ -115,7 +115,7 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({
                 <li>• Un conseiller unique dédié qui gère et synchronise tout</li>
                 <li>• Déplacements et audits physiques contradictoires sur le terrain</li>
                 <li>• Tarifs négociés aux prix réels du marché sénégalais</li>
-                <li>• Paiements sécurisés sous séquestre au jalon validé</li>
+                <li>• Suivi transparent des dépenses et justificatifs à chaque jalon, sans conservation des fonds par Elikia</li>
               </ul>
             </div>
           </div>
@@ -160,4 +160,3 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({
     </div>
   );
 };
-

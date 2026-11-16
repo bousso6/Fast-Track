@@ -1,4 +1,4 @@
-export type PageRoute = 
+export type PageRoute =
   | 'home'
   | 'accueil'
   | 'retour'
@@ -11,12 +11,15 @@ export type PageRoute =
   | 'partenaires'
   | 'demarrer'
   | 'dashboard'
+  | 'admin-dashboard'
+  | 'advisor-dashboard'
+  | 'finance-dashboard'
   | 'login'
   | 'register'
   | 'verify-email'
   | 'reset-password';
 
-export type ServiceType = 
+export type ServiceType =
   | 'retour'
   | 'emploi'
   | 'entreprendre'

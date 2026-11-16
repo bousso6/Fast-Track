@@ -44,7 +44,7 @@ export const INITIAL_USER_PROJECTS: UserProject[] = [
       { step: 'Sourcing & Visite vidéo 360°', completed: true, date: '28 Nov 2025', description: 'Visite physique par l’équipe Elikia avec rapport d’inspection' },
       { step: 'Négociation & Offre validée', completed: true, date: '15 Déc 2025', description: 'Accord trouvé avec le promoteur à 65M FCFA au lieu de 70M' },
       { step: 'Audit juridique & Notaire', completed: false, current: true, date: 'En cours', description: 'Vérification de l’état des droits réels à la conservation foncière' },
-      { step: 'Signature promesse & Acompte sécurisé', completed: false, date: 'Prévu fin mars', description: 'Dépôt sous séquestre chez Maître Sow' },
+      { step: 'Signature promesse & acompte', completed: false, date: 'Prévu fin mars', description: 'Modalités de paiement à confirmer avec le notaire' },
       { step: 'Remise des clés & Ameublement', completed: false, date: 'Prévu mi-avril', description: 'État des lieux contradictoire et remise des clés' }
     ],
     documents: [
@@ -288,9 +288,9 @@ export const OFFERS = [
       'Gestionnaire de patrimoine & Desk dédié',
       'Suivi multi-projets (Immobilier, Entreprises, Véhicules)',
       'Représentation locale et mandat de confiance',
-      'Gestion et paiement sécurisé des prestataires',
+      'Coordination des prestataires et suivi documenté des dépenses',
       'Due diligence avancée et rapports d’audits complets',
-      'Comptabilité analytique et suivi des flux financiers',
+      'Reporting opérationnel et suivi des budgets',
       'Ligne directe WhatsApp 7j/7 avec votre coordinateur'
     ],
     cta: 'Parler à un conseiller Private Desk',
